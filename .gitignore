@@ -1,0 +1,62 @@
+# 构建目录
+build/
+CMakeFiles/
+
+# CMake生成的文件
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+
+# 编译产物
+*.o
+*.so
+*.so.*
+*.a
+*.exe
+*.out
+*.dylib
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+
+# IDE配置文件
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 包管理文件
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 调试文件
+core
+*.stackdump
+
+# 文档构建目录
+doc/build/
+
+# 测试覆盖率文件
+coverage/
+*.gcov
+*.gcda
+*.gcno
