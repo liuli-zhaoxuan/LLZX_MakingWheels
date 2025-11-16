@@ -1,35 +1,28 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(cache_system VERSION 1.0.0 LANGUAGES CXX)
+project(cache_system LANGUAGES CXX)
 
-# 添加头文件目录
+# 设置调试模式和调试标志
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
+# 添加头文件目录（仅保留本组件的include）
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/common/include
 )
 
-# 收集源文件
-file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+# 检查是否有main函数，如果有则创建可执行文件，否则创建库
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/cache.cpp" CACHE_CPP_CONTENT)
+string(FIND "${CACHE_CPP_CONTENT}" "int main(" HAS_MAIN)
 
-# 创建库
-add_library(cache_system ${SOURCES})
-
-# 设置库的版本属性
-set_target_properties(cache_system PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION 1
-)
-
-# 链接公共库
-target_link_libraries(cache_system PRIVATE common_utils)
-
-# 创建测试可执行文件（如果有测试文件）
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test")
-    file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp")
-    add_executable(cache_system_test ${TEST_SOURCES})
-    target_link_libraries(cache_system_test PRIVATE cache_system)
+if(HAS_MAIN GREATER -1)
+    # 创建可执行文件
+    add_executable(cache_system ${CMAKE_CURRENT_SOURCE_DIR}/src/cache.cpp)
+    message(STATUS "Creating executable for cache_system")
+else()
+    # 收集源文件
+    file(GLOB SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
     
-    # 添加测试
-    enable_testing()
-    add_test(NAME cache_system_test COMMAND cache_system_test)
+    # 创建库
+    add_library(cache_system ${SOURCES})
 endif()

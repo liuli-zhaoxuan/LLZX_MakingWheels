@@ -16,7 +16,7 @@ else()
 endif()
 
 # 添加公共工具库
-add_subdirectory(common)
+#add_subdirectory(common)
 
 # 添加子项目
 option(BUILD_CACHE_SYSTEM "Build cache system project" ON)
@@ -26,9 +26,9 @@ if(BUILD_CACHE_SYSTEM)
     add_subdirectory(cache_system)
 endif()
 
-if(BUILD_MEMORY_POOL)
-    add_subdirectory(memory_pool)
-endif()
+# if(BUILD_MEMORY_POOL)
+#     add_subdirectory(memory_pool)
+# endif()
 
 # 提供构建所有项目的选项
 add_custom_target(build_all
