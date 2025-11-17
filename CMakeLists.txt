@@ -15,12 +15,14 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
 
+# 将编译的可执行文件放到bin目录下
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # 添加公共工具库
 #add_subdirectory(common)
 
 # 添加子项目
 option(BUILD_CACHE_SYSTEM "Build cache system project" ON)
-option(BUILD_MEMORY_POOL "Build memory pool project" ON)
 
 if(BUILD_CACHE_SYSTEM)
     add_subdirectory(cache_system)
@@ -35,13 +37,11 @@ add_custom_target(build_all
     COMMENT "Building all projects"
     DEPENDS
         $<TARGET_NAME_IF_EXISTS:cache_system>
-        $<TARGET_NAME_IF_EXISTS:memory_pool>
+        # $<TARGET_NAME_IF_EXISTS:memory_pool>
 )
 
 # 提供清理所有构建产物的选项
 add_custom_target(clean_all
     COMMENT "Cleaning all build files"
-    COMMAND ${CMAKE_BUILD_TOOL} clean
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
