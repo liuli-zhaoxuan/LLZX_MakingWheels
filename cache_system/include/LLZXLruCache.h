@@ -173,4 +173,82 @@ private:
     NodePtr       dummyTail_;
 };
 
+// LRU优化：Lru-k版本，通过继承的方式进行再优化
+template<typename Key, typename Value>
+class LLZXLruKCache : public LLZXLruCache<Key, Value>
+{
+public:
+	LLZXLruKCache(int capacity, int historyCapacity, int k)
+		: LLZXLruCache<Key, Value>(capacity)
+		, historyList_(std::make_unique<LLZXLruCache<Key, size_t>>(historyCapacity))
+		, k_(k)
+	{}
+
+	Vaule get(Key key)
+	{
+		// 首先尝试从主缓存获取数据
+		Value value{};
+		bool inMainCache = LLZXLruCache<Key, Value>::get(key, value);
+
+		// 获取并更新访问历史计数
+		size_t historyCount = historyList_->get(key);
+		historyCount++;
+		historyList_->put(key, historyCount);
+
+		// 如果在主缓存中，直接返回
+		if (inMainCache)
+		{
+			return value;
+		}
+
+		// 不在，检查是否达到了k次访问
+		if(historyCount >= k_)
+		{
+			auto it = historyValueMap_.find(key);
+			if(it != historyValueMap_.end())
+			{
+				Value storedValue = it->second;
+				historyList_->remove(key);
+				historyValueMap_.erase(it);
+
+				LLZXLruCache<Key, Value>::put(key, storedValue);
+				return storedValue;
+			}
+			//没有找到，返回默认值
+		}
+
+		return value; // 默认值
+	}
+
+	void put(Key key, Value value)
+	{
+		Value exitingValue{};
+		bool inMainCache = LLZXLruCache<Key, Value>::get(key, exitingValue);
+		if(inMainCache)
+		{
+			LLZXLruCache<Key, Value>::put(key, value);
+			return;
+		}
+
+		size_t historyCount = historyList_->get(key);
+		historyCount++;
+		historyList_->put(key, historyCount);
+
+		// 保存值到历史记录映射，供后续get操作使用
+		historyValueMap_[key] = value;
+		
+		if(historyCount >= k_)
+		{
+			historyList_->remove(key);
+			historyValueMap_.erase(key);
+			LLZXLruCache<Key, Value>::put(key, value);
+		}
+	}
+private:
+	int k_;//进入缓存的门槛
+	std::unique_ptr<LLZXLruCache<Key, size_t>> historyList_; // 记录访问历史的缓存
+	std::unordered_map<Key, Value> historyValueMap_; // 记录存储未达到k次访问的数值
+};
+
+
 }
