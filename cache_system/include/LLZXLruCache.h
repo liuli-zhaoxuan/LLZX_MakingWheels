@@ -250,5 +250,54 @@ private:
 	std::unordered_map<Key, Value> historyValueMap_; // 记录存储未达到k次访问的数值
 };
 
+//高并发情况下：分片lru
+template<typename Key, typename Value>
+class LLZXHashLruCache
+{
+public:
+	LLZXHashLruCache(size_t capacity, size_t sliceNum)
+		: capacity_(capacity)
+		, sliceNum_(sliceNum > 0 ? sliceNum : std::thread::hardware_concurrency())
+	{
+		size_t sliceSize = std::ceil(capacity / static_cast<double>(sliceNum));//获得每个分片大小
+		for(int i = 0; i < sliceNum_; ++i)
+		{
+			lruSliceCaches_.emplace_back(std::make_unique<LLZXLruCache<Key, Value>>(sliceSize));//创建切片LRU缓存
+		}
+	}
+
+	void put(Key key, Value value)
+	{
+		// 根据key的hash值选择切片
+		size_t sliceIndex = Hash(key) % sliceNum_;
+		return lruSlieceCaches_[sliceIndex]->put(key, value);
+	}
+
+	bool get(Key key, Value& value)
+	{
+		size_t sliceIndex = Hash(key) % sliceNum_;
+		return lruSliceCaches_[sliceIndex]->get(key, value);
+	}
+
+	Value get(Key key)
+	{
+		Value value;
+		memset(&value, 0, sizeof(value));
+		get(key, value);
+		return value;
+	}
+
+private:
+	size_t Hash(const Key& key)
+	{
+		std::hash<Key> hashFunc;
+		return hashFunc(key);
+	}
+
+private:
+	size_t capacity_;//总容量
+	size_t sliceNum_;//切片数量
+	std::vector<std::unique_ptr<LLZXLruCache<Key, Value>>> lruSliceCaches_;//切片LRU缓存
+};
 
 }
